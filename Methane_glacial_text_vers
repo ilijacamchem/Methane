@@ -1,0 +1,110 @@
+from math import *
+import matplotlib.pyplot as plt
+
+#E2=0*9.05*10**5 #float(input("Enter the emissions from CO: "))
+P1=5*10**5 #float(input("Enter the rate of chemical production of OH: "))
+k1=5.23*10**(-15) #float(input("Enter the rate constant of CH4+OH: "))
+k2=8.9*10**(-14) #float(input("Enter the rate constant of CH4+Cl: "))
+k3=2*10**(-13) #float(input("Enter the rate constant of CO+OH: "))
+cOH=4.76*10**5 #float(input("Enter the initial SS concentration of OH: "))
+cCH4i=1*10**13 #float(input("Enter the initial SS concentration of CH4: "))
+cCl1=1.1*10**4 #float(input("Enter the initial SS concentration of Cl: "))
+cCO=2*2.5*10**12 #float(input("Enter the initial SS concentration of CO: "))
+P2=5.33*10**5
+#T=float(input("Enter the time duration: "))
+dt=10**6#float(input("Enter the time step: "))
+
+def rCH4(cCH4,cOH, cCl, E1):
+    return E1-k1*cCH4*cOH-k2*cCH4*cCl
+
+def rCO(cCO, cCl, cOH, E2):
+    return E2+k1*cCH4*cOH+k2*cCH4*cCl-k3*cCO*cOH
+def cE(h):
+    return 2339000/h
+
+
+
+
+
+with open('glacial.txt') as text_object:
+    M=text_object.readlines()
+L=[]
+for r in range(0,len(M)):
+    N=[]
+    N=M[r]
+    N=N.split(" ")
+    N[6]=N[6].replace("\n", "")
+    L.append(N)
+#print(L)
+h=2000
+cf=3.16*10**7
+E1=float(L[0][5])*10**(float(L[0][6]))
+t=int(L[0][0])
+cCl=cCl1
+cCH4=cCH4i
+Tc=[int(L[0][0])]
+CCH4=[cCH4/2.5/10**10]
+CCO=[cCO]
+COH=[cOH]
+CE1=[E1/cE(h)]
+z=0
+T=float(L[len(M)-1][1])
+print(T)
+
+        
+
+while t<T:
+    if t>=int(L[z][0]) and t<int(L[z][1]):
+        A=float(L[z][2])
+        B=float(L[z][3])
+        C=int(L[z][4])
+        D=float(L[z][5])
+        E=int(L[z][6])
+        def EM(E1):
+            E1=E1*A+B*10**C*dt+D*10**E
+            return E1
+    else:
+        z+=1
+        
+    
+    E1=EM(E1)
+    #1
+    m1=cCH4 + dt * rCH4(cCH4, cOH, cCl, E1) / 2
+    cOH1=P1/(k1*m1+k3*cCO)
+    #2
+    m2=cCH4 + dt * rCH4(m1, cOH1, cCl, E1) / 2
+    cOH2=P1/(k1*m2+k3*cCO)
+    #3
+    m3=cCH4 + dt * rCH4(m2, cOH2, cCl, E1)
+    cOH3=P1/(k1*m3+k3*cCO)
+    #4
+    cCH4=cCH4 + dt * (rCH4(cCH4, cOH, cCl, E1) + 2 * rCH4(m1, cOH1, cCl, E1) + 2 * rCH4(m2, cOH2, cCl, E1) + rCH4(m3, cOH3, cCl, E1)) / 6
+    cOH=P1/(k1*cCH4+k3*cCO)
+    cCl=P2/(k2*cCH4)
+    t+=dt/cf
+    if cCH4<=0 or cCO<=0 or cOH<=0:
+        print(t)
+        break
+    Tc.append(t)
+    CCH4.append(cCH4/2.5/10**10)
+    CCO.append(cCO)
+    COH.append(cOH)
+    CE1.append(E1/cE(h))
+#print(CE1)
+
+
+
+plt.plot(Tc,CCH4)#ppm vs yrs
+plt.xlabel("time/yrs")
+plt.ylabel("cCH4/ppb")
+plt.show()
+plt.plot(Tc,COH)#cm-3 vs yrs
+plt.xlabel("time/yrs")
+plt.ylabel("cOH/cm-3")
+plt.show()
+plt.plot(Tc,CE1)#Tg vs yrs
+plt.xlabel("time/yrs")
+plt.ylabel("emission of CH4/Tg yr-1")
+plt.show()
+
+#note: present day emissions, reference height
