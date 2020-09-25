@@ -1,0 +1,84 @@
+from math import *
+import matplotlib.pyplot as plt
+
+#E2=0*9.05*10**5 #float(input("Enter the emissions from CO: "))
+P1=5*10**5 #float(input("Enter the rate of chemical production of OH: "))
+k1=5.23*10**(-15) #float(input("Enter the rate constant of CH4+OH: "))
+k2=8.9*10**(-14) #float(input("Enter the rate constant of CH4+Cl: "))
+k3=2*10**(-13) #float(input("Enter the rate constant of CO+OH: "))
+cOH=3.6353*10**6 #float(input("Enter the initial SS concentration of OH: "))
+cCH4i=4.1*10**13 #float(input("Enter the initial SS concentration of CH4: "))
+cCl1=1.1*10**4 #float(input("Enter the initial SS concentration of Cl: "))
+cCO=2.5*10**12 #float(input("Enter the initial SS concentration of CO: "))
+P2=5.33*10**5
+T=float(input("Enter the time duration: "))
+dt=float(input("Enter the time step: "))
+
+def rCH4(cCH4,cOH, cCl, E1):
+    return E1-k1*cCH4*cOH-k2*cCH4*cCl
+
+def rCO(cCO, cCl, cOH, E2):
+    return E2+k1*cCH4*cOH+k2*cCH4*cCl-k3*cCO*cOH
+
+
+
+3.16*10**9
+E1=6.955*10**5
+t=0
+cCl=cCl1
+cCH4=cCH4i
+Tc=[1984]
+CCH4=[cCH4/2.5/10**10]
+CCO=[cCO]
+COH=[cOH]
+CE1=[E1]
+while t<T:
+    if t<(1998-1984)*3.16*10**7:
+        E1=6.955*10**5
+    elif t<(2000-1984)*3.16*10**7:
+        E1=E1-1.5844*10**(-4)*dt/2
+    elif t<(2006-1984)*3.16*10**7:
+        E1=6.905*10**5
+    elif t<(2008-1984)*3.16*10**7:
+        E1=E1+3.1688*10**(-4)*dt/2
+    elif t<(2020-1984)*3.16*10**7:
+        E1=7.02*10**5
+    
+    #E2=9.05*10**5
+    #1
+    m1=cCH4 + dt * rCH4(cCH4, cOH, cCl, E1) / 2
+    #c1=cCO + dt * rCO(cCO, cCl, cOH, E2) / 2
+    cOH1=P1/(k1*m1+k3*cCO)
+    #2
+    m2=cCH4 + dt * rCH4(m1, cOH1, cCl, E1) / 2
+    #c2=cCO + dt * rCO(c1, cCl, cOH, E2) / 2
+    cOH2=P1/(k1*m2+k3*cCO)
+    #3
+    m3=cCH4 + dt * rCH4(m2, cOH2, cCl, E1)
+    #c3=cCO + dt * rCO(c2, cCl, cOH, E2)
+    cOH3=P1/(k1*m3+k3*cCO)
+    #4
+    cCH4=cCH4 + dt * (rCH4(cCH4, cOH, cCl, E1) + 2 * rCH4(m1, cOH1, cCl, E1) + 2 * rCH4(m2, cOH2, cCl, E1) + rCH4(m3, cOH3, cCl, E1)) / 6
+    #cCO=cCO + dt * (rCO(cCO, cCl, cOH, E2) + 2 * rCO(c1, cCl, cOH1, E2) + 2*rCO(c2, cCl, cOH2, E2) + rCO(c3, cCl, cOH3, E2))/ 6
+    cOH=P1/(k1*cCH4+k3*cCO)
+    cCl=P2/(k2*cCH4)
+    t+=dt
+    if cCH4<=0 or cCO<=0 or cOH<=0:
+        print(t)
+        break
+    Tc.append(1984+t/(3.16*10**7))
+    CCH4.append(cCH4/2.5/10**10)
+    CCO.append(cCO)
+    COH.append(cOH)
+    CE1.append(E1)
+
+
+
+plt.plot(Tc,CCH4)
+plt.show()
+plt.plot(Tc,COH)
+plt.show()
+plt.plot(Tc,CE1)
+plt.show()
+
+
